@@ -19,7 +19,7 @@ var exeName = regexp.MustCompile(`(?i)(^|[\\/])wow(classic|t|b|f|-64)?\.exe$`)
 // exeInLine finds the same executables inside a full command line, where a
 // Wine path such as "C:\Program Files (x86)\...\Wow.exe -launcherlogin"
 // contains spaces, so the first word alone is not enough.
-var exeInLine = regexp.MustCompile(`(?i)(^|[\/])wow(classic|t|b|f|-64)?\.exe(\s|$)`)
+var exeInLine = regexp.MustCompile(`(?i)(^|[\\/])wow(classic|t|b|f|-64)?\.exe(\s|$)`)
 
 // macBinary matches the binary inside the macOS app bundle.
 var macBinary = regexp.MustCompile(`/Contents/MacOS/World of Warcraft( Classic| Beta| Test)?(\s|$)`)

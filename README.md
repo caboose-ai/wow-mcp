@@ -71,8 +71,13 @@ Flags, or the environment variable in brackets:
 Example for a Forever-first setup:
 
 ```bash
-claude mcp add -s user -e WOW_DEFAULT_FLAVOR=forever wow-local -- wow-mcp
+claude mcp add -s user wow-local wow-mcp -e WOW_DEFAULT_FLAVOR=forever
 ```
+
+The `-e` flag takes several `KEY=value` pairs, so it has to come after the
+server name and command or it swallows them. On Windows, give the full path
+to `wow-mcp.exe` unless it is on PATH, and quote a bare `--` as `'--'` in
+PowerShell.
 
 ## Safety rules
 

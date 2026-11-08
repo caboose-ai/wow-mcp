@@ -160,8 +160,10 @@ usable:
 - There is no Lua API reference, linter or scaffolder here; use an addon
   development server for that.
 - Running-client detection matches `Wow.exe`, `WowClassic.exe`, `WowT.exe`,
-  `WowB.exe` and the macOS app binary. If it cannot run `ps`/`tasklist` it
-  assumes the client is closed and relies on the backup.
+  `WowB.exe` and the macOS app binary. Inside WSL it asks the Windows host
+  through `tasklist.exe`, and auto-detect also scans the drives under `/mnt`.
+  If it cannot run `ps`/`tasklist` it assumes the client is closed and relies
+  on the backup.
 - Edits to `Config.wtf` made while the game is closed take effect on the next
   launch. SavedVariables edits are read on the next login of that
   account/character.

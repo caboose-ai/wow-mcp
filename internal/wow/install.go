@@ -323,6 +323,19 @@ func Candidates() []string {
 			)
 		}
 		raw = append(raw, filepath.Join(home, "Games", wow))
+		// Inside WSL the Windows drives are mounted under /mnt/<letter>.
+		if IsWSL() {
+			drives, _ := filepath.Glob("/mnt/[a-z]")
+			for _, d := range drives {
+				raw = append(raw,
+					filepath.Join(d, "Program Files (x86)", wow),
+					filepath.Join(d, "Program Files", wow),
+					filepath.Join(d, wow),
+					filepath.Join(d, "Games", wow),
+					filepath.Join(d, "Battle.net", wow),
+				)
+			}
+		}
 	}
 	var out []string
 	seen := map[string]bool{}

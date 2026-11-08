@@ -749,3 +749,31 @@ func TestForeverRealmNamesAndFirstNames(t *testing.T) {
 		t.Error("forever did not pick the Camelot toc")
 	}
 }
+
+func TestProcessMatching(t *testing.T) {
+	tasklist := []byte("\"System Idle Process\",\"0\",\"Services\",\"0\",\"8 K\"\r\n" +
+		"\"WowUp.exe\",\"100\",\"Console\",\"1\",\"50,000 K\"\r\n" +
+		"\"Battle.net.exe\",\"200\",\"Console\",\"1\",\"90,000 K\"\r\n")
+	if name, ok := matchTasklist(tasklist); ok {
+		t.Errorf("false positive %q", name)
+	}
+	withWow := append(tasklist, []byte("\"WowClassic.exe\",\"300\",\"Console\",\"1\",\"3,000,000 K\"\r\n")...)
+	if name, ok := matchTasklist(withWow); !ok || name != "WowClassic.exe" {
+		t.Errorf("tasklist match = %q %v", name, ok)
+	}
+	ps := []byte("/usr/bin/wow-mcp -root /Applications/World of Warcraft\n" +
+		"/home/x/.local/bin/WowUp.exe\n" +
+		"grep Wow.exe\n")
+	if line, ok := matchPS(ps); ok {
+		t.Errorf("false positive %q", line)
+	}
+	wine := append(ps, []byte("C:\\Program Files (x86)\\World of Warcraft\\_retail_\\Wow.exe -launcherlogin\n")...)
+	if _, ok := matchPS(wine); !ok {
+		t.Error("wine Wow.exe not matched")
+	}
+	mac := append(ps, []byte("/Applications/World of Warcraft/_retail_/World of Warcraft.app/Contents/MacOS/World of Warcraft -launcherlogin\n")...)
+	if _, ok := matchPS(mac); !ok {
+		t.Error("macOS binary not matched")
+	}
+	_ = IsWSL() // must not panic anywhere
+}

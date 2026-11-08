@@ -41,9 +41,7 @@ brew tap caboose-ai/tap
 brew install wow-mcp
 ```
 
-The formula builds from source over git, so the machine needs GitHub
-credentials for this private repository (`gh auth login`, then
-`gh auth setup-git`). Without Homebrew:
+The formula builds from the tagged release tarball. Without Homebrew:
 
 ```bash
 go install github.com/caboose-ai/wow-mcp/cmd/wow-mcp@latest
@@ -174,9 +172,11 @@ usable:
 go test ./...
 ```
 
-Releasing: tag `vX.Y.Z` on `main`, push the tag, then in
-[caboose-ai/homebrew-tap](https://github.com/caboose-ai/homebrew-tap) update
-`tag:` and `revision:` in `Formula/wow-mcp.rb` and check it with
+Releasing: tag `vX.Y.Z` on `main` and push the tag. Then in
+[caboose-ai/homebrew-tap](https://github.com/caboose-ai/homebrew-tap) point
+`url` in `Formula/wow-mcp.rb` at the new
+`archive/refs/tags/vX.Y.Z.tar.gz`, set `sha256` to `curl -fsSL <url> | sha256sum`,
+and check it with
 `brew install --build-from-source caboose-ai/tap/wow-mcp && brew test caboose-ai/tap/wow-mcp`.
 
 Tests run against a fixture install under `internal/wow/testdata/root` (two

@@ -33,15 +33,25 @@ Single static Go binary, stdio transport, no network access.
 
 ## Install
 
-Build on the machine where WoW is installed (the server needs the files, not
-the game running):
+Install on the machine where WoW is installed (the server needs the files, not
+the game running). With Homebrew on macOS or Linux:
+
+```bash
+brew tap caboose-ai/tap
+brew install wow-mcp
+```
+
+The formula builds from source over git, so the machine needs GitHub
+credentials for this private repository (`gh auth login`, then
+`gh auth setup-git`). Without Homebrew:
 
 ```bash
 go install github.com/caboose-ai/wow-mcp/cmd/wow-mcp@latest
 ```
 
 or from a checkout: `make build` (current OS) or `make cross` for Windows and
-macOS binaries in `dist/`.
+macOS binaries in `dist/`. On Windows, build from a checkout with
+`go build -o wow-mcp.exe .\cmd\wow-mcp`.
 
 Register with Claude Code (user scope, so every project sees it):
 
@@ -161,6 +171,11 @@ usable:
 ```bash
 go test ./...
 ```
+
+Releasing: tag `vX.Y.Z` on `main`, push the tag, then in
+[caboose-ai/homebrew-tap](https://github.com/caboose-ai/homebrew-tap) update
+`tag:` and `revision:` in `Formula/wow-mcp.rb` and check it with
+`brew install --build-from-source caboose-ai/tap/wow-mcp && brew test caboose-ai/tap/wow-mcp`.
 
 Tests run against a fixture install under `internal/wow/testdata/root` (two
 flavors, one account, three characters, three addons) and an in-memory MCP

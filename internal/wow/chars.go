@@ -74,8 +74,10 @@ func newestMod(dir string) time.Time {
 	return t
 }
 
-// Accounts enumerates WTF/Account. Folders named SavedVariables are the
-// account-wide variables, every other folder is a realm.
+// Accounts enumerates WTF/Account. Inside an account, the folder named
+// SavedVariables holds the account-wide variables and every other folder is
+// a realm. The client also keeps a SavedVariables folder directly under
+// WTF/Account (shared, not an account), which is skipped.
 func (f *Flavor) Accounts() ([]Account, error) {
 	entries, err := os.ReadDir(f.AccountsDir())
 	if err != nil {
@@ -86,10 +88,10 @@ func (f *Flavor) Accounts() ([]Account, error) {
 	}
 	var out []Account
 	for _, ae := range entries {
-		if !ae.IsDir() {
+		if !ae.IsDir() || strings.EqualFold(ae.Name(), "SavedVariables") {
 			continue
 		}
-		acc := Account{Name: ae.Name(), Dir: filepath.Join(f.AccountsDir(), ae.Name())}
+		acc := Account{Name: ae.Name(), Dir: filepath.Join(f.AccountsDir(), ae.Name()), Realms: []Realm{}}
 		acc.SavedVariables = countLua(acc.SavedVariablesDir())
 		realms, err := os.ReadDir(acc.Dir)
 		if err != nil {
@@ -99,7 +101,7 @@ func (f *Flavor) Accounts() ([]Account, error) {
 			if !re.IsDir() || re.Name() == "SavedVariables" {
 				continue
 			}
-			realm := Realm{Name: re.Name()}
+			realm := Realm{Name: re.Name(), Characters: []Character{}}
 			chars, err := os.ReadDir(filepath.Join(acc.Dir, re.Name()))
 			if err != nil {
 				return nil, err

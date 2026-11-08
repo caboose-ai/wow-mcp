@@ -282,7 +282,7 @@ func TestWTFConfig(t *testing.T) {
 func TestAccountsAndResolve(t *testing.T) {
 	fl := retail(t, fixtureRoot(t))
 	accs, err := fl.Accounts()
-	if err != nil || len(accs) != 1 {
+	if err != nil || len(accs) != 1 { // WTF/Account/SavedVariables is not an account
 		t.Fatalf("accounts = %+v %v", accs, err)
 	}
 	acc := accs[0]

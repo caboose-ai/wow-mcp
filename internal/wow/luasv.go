@@ -82,8 +82,38 @@ func LoadSavedVariables(path string) (*SavedVariables, error) {
 }
 
 // Save writes the file back in the client's own layout through WriteFileSafely.
+// Every top-level name is checked to be a plain Lua identifier first: the
+// client executes this file as Lua, so a name is the one place where text
+// would otherwise reach the file unescaped.
 func (sv *SavedVariables) Save() (string, error) {
+	for _, v := range sv.Vars {
+		if err := ValidateLuaIdentifier(v.Name); err != nil {
+			return "", err
+		}
+	}
 	return WriteFileSafely(sv.Path, sv.Bytes())
+}
+
+var luaIdent = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+var luaReserved = map[string]bool{
+	"and": true, "break": true, "do": true, "else": true, "elseif": true, "end": true,
+	"false": true, "for": true, "function": true, "goto": true, "if": true, "in": true,
+	"local": true, "nil": true, "not": true, "or": true, "repeat": true, "return": true,
+	"then": true, "true": true, "until": true, "while": true,
+}
+
+// ValidateLuaIdentifier accepts only names that can stand on the left of
+// "=" in a SavedVariables file: letters, digits and underscores, not starting
+// with a digit, and not a Lua reserved word.
+func ValidateLuaIdentifier(name string) error {
+	if !luaIdent.MatchString(name) {
+		return fmt.Errorf("variable name %q is not a Lua identifier (letters, digits and _ only)", name)
+	}
+	if luaReserved[name] {
+		return fmt.Errorf("variable name %q is a Lua reserved word", name)
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------- lexer
@@ -854,6 +884,9 @@ func (sv *SavedVariables) Lookup(path []string) (any, bool) {
 func (sv *SavedVariables) SetPath(path []string, v any) (previous any, existed bool, err error) {
 	if len(path) == 0 {
 		return nil, false, errors.New("path is empty")
+	}
+	if err := ValidateLuaIdentifier(path[0]); err != nil {
+		return nil, false, err
 	}
 	vi := -1
 	for i := range sv.Vars {

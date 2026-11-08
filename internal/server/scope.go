@@ -52,6 +52,9 @@ func requireAddonKnown(fl *wow.Flavor, name string) (string, error) {
 	if err := wow.ValidateName("addon", name); err != nil {
 		return "", err
 	}
+	if strings.Contains(name, ":") {
+		return "", fmt.Errorf("addon name %q must not contain ':'", name)
+	}
 	if strings.HasPrefix(strings.ToLower(name), "blizzard_") {
 		return name, nil
 	}

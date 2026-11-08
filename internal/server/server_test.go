@@ -380,6 +380,12 @@ func TestWriteTools(t *testing.T) {
 	if _, errText := call(t, cs, "wow_saved_variable_set", obj{"addon": "Unknown", "path": "X.y", "value_json": "1"}); !strings.Contains(errText, "no addon") {
 		t.Errorf("unknown addon sv error = %q", errText)
 	}
+	if _, errText := call(t, cs, "wow_saved_variable_set", obj{"addon": "TestAddon", "path": `["Evil = 1 print(\"pwn\") --","k"]`, "value_json": "1"}); !strings.Contains(errText, "not a Lua identifier") {
+		t.Errorf("injection path error = %q", errText)
+	}
+	if _, errText := call(t, cs, "wow_addon_set_enabled", obj{"addons": []string{"Blizzard_X: enabled"}, "enabled": true, "all_characters": true}); !strings.Contains(errText, "':'") {
+		t.Errorf("colon addon name error = %q", errText)
+	}
 }
 
 func TestReadOnly(t *testing.T) {

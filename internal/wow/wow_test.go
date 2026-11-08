@@ -644,3 +644,30 @@ func TestValidateName(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestLuaIdentifierGuard(t *testing.T) {
+	for _, ok := range []string{"MyAddonDB", "_x", "a1", "Blizzard_X"} {
+		if err := ValidateLuaIdentifier(ok); err != nil {
+			t.Errorf("%q rejected: %v", ok, err)
+		}
+	}
+	for _, bad := range []string{"", "1abc", "a b", "a.b", "end", "nil", "X = 1 print(\"pwn\") --", "a-b", "é"} {
+		if err := ValidateLuaIdentifier(bad); err == nil {
+			t.Errorf("%q accepted", bad)
+		}
+	}
+	sv := &SavedVariables{Path: filepath.Join(t.TempDir(), "X.lua")}
+	if _, _, err := sv.SetPath([]string{"X = 1 print(\"pwn\") --", "k"}, 1.0); err == nil {
+		t.Fatal("injection via variable name accepted by SetPath")
+	}
+	if len(sv.Vars) != 0 {
+		t.Fatal("rejected SetPath still added a variable")
+	}
+	sv.Vars = append(sv.Vars, LuaVar{Name: "bad name", Value: 1.0})
+	if _, err := sv.Save(); err == nil {
+		t.Fatal("Save wrote a non-identifier variable name")
+	}
+	if _, err := os.Stat(sv.Path); err == nil {
+		t.Fatal("file was written despite the rejected name")
+	}
+}

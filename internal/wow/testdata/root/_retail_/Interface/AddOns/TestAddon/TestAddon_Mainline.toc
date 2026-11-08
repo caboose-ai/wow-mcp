@@ -1,0 +1,6 @@
+## Interface: 110205
+## Title: Test Addon (Mainline)
+## Version: 1.2.3
+## SavedVariables: TestAddonDB, TestAddonGlobal
+## SavedVariablesPerCharacter: TestAddonCharDB
+core.lua

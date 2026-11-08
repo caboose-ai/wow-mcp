@@ -1,0 +1,7 @@
+MACRO 1 "Mount" INV_MISC_QUESTIONMARK
+#showtooltip
+/cast Swift Zulian Tiger
+END
+MACRO 2 "Heal" SPELL_HOLY_FLASHHEAL
+/cast [@mouseover,help,nodead][help][@player] Flash Heal
+END

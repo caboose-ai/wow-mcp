@@ -1,0 +1,4 @@
+TestAddon: enabled
+OldAddon: disabled
+Blizzard_Calendar: enabled
+Gone: enabled

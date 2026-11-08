@@ -1,0 +1,6 @@
+## Interface: 100207
+## Title: Old Addon
+## Dependencies: TestAddon
+## LoadOnDemand: 1
+## DefaultState: disabled
+old.lua

@@ -1,0 +1,4 @@
+## Interface: 11507
+## Title: Test Addon (Vanilla)
+## Version: 1.2.3
+core.lua

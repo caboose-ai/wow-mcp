@@ -1,0 +1,14 @@
+## Interface: 110200
+## Title: |cff00ff00Test|r Addon
+## Notes: A fixture addon.
+## Author: Fixture
+## Version: 1.2.3
+## SavedVariables: TestAddonDB, TestAddonGlobal
+## SavedVariablesPerCharacter: TestAddonCharDB
+## OptionalDeps: Ace3, LibStub
+## X-Website: https://example.invalid
+
+core.lua
+# a comment
+locales\enUS.lua
+ui.xml

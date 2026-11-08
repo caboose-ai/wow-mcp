@@ -1,0 +1,6 @@
+
+TestAddonCharDB = {
+	["minimap"] = {
+		["hide"] = false,
+	},
+}

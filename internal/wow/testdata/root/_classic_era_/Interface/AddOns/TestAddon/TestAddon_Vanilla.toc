@@ -1,0 +1,3 @@
+## Interface: 11507
+## Title: Test Addon Era
+core.lua

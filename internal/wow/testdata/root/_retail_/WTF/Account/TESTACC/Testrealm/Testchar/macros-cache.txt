@@ -1,0 +1,3 @@
+MACRO 3 "Char" INV_MISC_QUESTIONMARK
+/say hi
+END

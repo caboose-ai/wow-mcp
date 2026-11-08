@@ -80,7 +80,9 @@ type charactersIn struct {
 type characterOut struct {
 	Account        string `json:"account"`
 	Realm          string `json:"realm"`
+	RealmLabel     string `json:"realm_label,omitempty"` // human realm name when the folder is only an ID
 	Name           string `json:"name"`
+	FirstName      string `json:"first_name,omitempty"` // for two-part names such as Furda-Boiz
 	Dir            string `json:"dir"`
 	HasAddonsTxt   bool   `json:"has_addons_txt"`
 	SavedVariables int    `json:"saved_variables"`
@@ -88,7 +90,9 @@ type characterOut struct {
 }
 
 type realmOut struct {
-	Name       string         `json:"name"`
+	Name       string         `json:"name"`              // folder name; a numeric ID on some clients
+	Label      string         `json:"label,omitempty"`   // best human name found in SavedVariables
+	Aliases    []string       `json:"aliases,omitempty"` // other names addons use for the same realm
 	Characters []characterOut `json:"characters"`
 }
 
@@ -123,10 +127,18 @@ func (s *Server) characters(_ context.Context, _ *mcp.CallToolRequest, in charac
 	out := charactersOut{Flavor: fl.Name, Accounts: []accountOut{}}
 	for _, a := range accs {
 		ao := accountOut{Name: a.Name, Dir: a.Dir, SavedVariables: a.SavedVariables, Realms: []realmOut{}}
+		realmNames := a.RealmNames()
 		for _, r := range a.Realms {
-			ro := realmOut{Name: r.Name}
+			ro := realmOut{Name: r.Name, Characters: []characterOut{}}
+			if names := realmNames[r.Name]; len(names) > 0 {
+				ro.Label, ro.Aliases = names[0], names[1:]
+			}
 			for _, c := range r.Characters {
-				ro.Characters = append(ro.Characters, characterOut{Account: c.Account, Realm: c.Realm, Name: c.Name, Dir: c.Dir, HasAddonsTxt: c.HasAddonsTxt, SavedVariables: c.SavedVariables, Modified: fmtTime(c.Modified)})
+				co := characterOut{Account: c.Account, Realm: c.Realm, RealmLabel: ro.Label, Name: c.Name, Dir: c.Dir, HasAddonsTxt: c.HasAddonsTxt, SavedVariables: c.SavedVariables, Modified: fmtTime(c.Modified)}
+				if first := wow.FirstName(c.Name); first != c.Name {
+					co.FirstName = first
+				}
+				ro.Characters = append(ro.Characters, co)
 			}
 			ao.Realms = append(ao.Realms, ro)
 		}
@@ -140,8 +152,8 @@ func (s *Server) characters(_ context.Context, _ *mcp.CallToolRequest, in charac
 type addonsIn struct {
 	Flavor    string `json:"flavor,omitempty" jsonschema:"Client flavor; defaults to the server default"`
 	Account   string `json:"account,omitempty" jsonschema:"Account folder under WTF/Account; optional when unambiguous"`
-	Realm     string `json:"realm,omitempty" jsonschema:"Realm folder; optional when the character name is unique"`
-	Character string `json:"character,omitempty" jsonschema:"Character whose AddOns.txt decides the enabled state. Without it no enabled state is reported"`
+	Realm     string `json:"realm,omitempty" jsonschema:"Realm folder name or any human realm name shown by wow_characters; optional when the character name is unique"`
+	Character string `json:"character,omitempty" jsonschema:"Character whose AddOns.txt decides the enabled state; full folder name or, for two-part names, the first name. Without it no enabled state is reported"`
 	Filter    string `json:"filter,omitempty" jsonschema:"Case-insensitive substring matched against the folder name and title"`
 }
 
@@ -171,6 +183,7 @@ type addonsOut struct {
 	Interface     int        `json:"interface,omitempty"`
 	AddOnsDir     string     `json:"addons_dir"`
 	Character     string     `json:"character,omitempty"`
+	RealmLabel    string     `json:"realm_label,omitempty"`
 	AddonsTxt     string     `json:"addons_txt,omitempty"`
 	Count         int        `json:"count"`
 	Addons        []addonOut `json:"addons"`
@@ -225,6 +238,9 @@ func (s *Server) addons(_ context.Context, _ *mcp.CallToolRequest, in addonsIn) 
 			return nil, addonsOut{}, err
 		}
 		out.Character = ch.Account + "/" + ch.Realm + "/" + ch.Name
+		if acc, err := fl.ResolveAccount(ch.Account); err == nil {
+			out.RealmLabel = acc.RealmLabel(ch.Realm)
+		}
 		out.AddonsTxt = ch.AddonsTxtPath()
 		txt, err = wow.LoadAddonsTxt(ch.AddonsTxtPath())
 		if err != nil {

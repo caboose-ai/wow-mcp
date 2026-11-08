@@ -193,22 +193,45 @@ func (f *Flavor) ResolveCharacter(account, realm, name string) (*Character, erro
 			return nil, err
 		}
 	}
-	all, err := f.AllCharacters()
+	accs, err := f.Accounts()
 	if err != nil {
 		return nil, err
 	}
+	// Exact folder names first; first names ("Furda" for "Furda-Boiz") only
+	// when nothing matched exactly. A realm may be given as its folder name
+	// or as any human name RealmNames found for it.
 	var matches []Character
-	for _, c := range all {
-		if !strings.EqualFold(c.Name, name) {
-			continue
+	for pass := 0; pass < 2 && len(matches) == 0; pass++ {
+		for i := range accs {
+			acc := &accs[i]
+			if account != "" && !strings.EqualFold(acc.Name, account) {
+				continue
+			}
+			realmFolder := ""
+			if realm != "" {
+				folder, ok := acc.realmFolderFor(realm)
+				if !ok {
+					continue
+				}
+				realmFolder = folder
+			}
+			for _, r := range acc.Realms {
+				if realmFolder != "" && r.Name != realmFolder {
+					continue
+				}
+				for _, c := range r.Characters {
+					var hit bool
+					if pass == 0 {
+						hit = strings.EqualFold(c.Name, name)
+					} else {
+						hit = strings.EqualFold(FirstName(c.Name), name)
+					}
+					if hit {
+						matches = append(matches, c)
+					}
+				}
+			}
 		}
-		if account != "" && !strings.EqualFold(c.Account, account) {
-			continue
-		}
-		if realm != "" && !strings.EqualFold(c.Realm, realm) {
-			continue
-		}
-		matches = append(matches, c)
 	}
 	switch len(matches) {
 	case 1:

@@ -1,0 +1,3 @@
+SpokenCharDB = {
+	["seen"] = 3,
+}

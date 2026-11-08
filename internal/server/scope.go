@@ -38,7 +38,11 @@ func resolveScope(fl *wow.Flavor, account, realm, character string) (*scope, err
 	if err != nil {
 		return nil, err
 	}
-	return &scope{Dir: ch.Dir, Label: ch.Account + "/" + ch.Realm + "/" + ch.Name, Account: acc, Character: ch}, nil
+	label := ch.Account + "/" + ch.Realm + "/" + ch.Name
+	if rl := acc.RealmLabel(ch.Realm); rl != "" {
+		label = ch.Account + "/" + ch.Realm + " (" + rl + ")/" + ch.Name
+	}
+	return &scope{Dir: ch.Dir, Label: label, Account: acc, Character: ch}, nil
 }
 
 // savedVariablesFile is <scope>/SavedVariables/<addon>.lua.

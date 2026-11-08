@@ -62,7 +62,7 @@ func TestOpenInstall(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(inst.Flavors) != 2 {
+	if len(inst.Flavors) != 3 {
 		t.Fatalf("flavors = %+v", inst.Flavors)
 	}
 	fl, err := inst.Flavor("", "")
@@ -76,8 +76,11 @@ func TestOpenInstall(t *testing.T) {
 	if err != nil || era.Name != "classic_era" || era.Interface != 11507 {
 		t.Errorf("era = %+v, %v", era, err)
 	}
-	if _, err := inst.Flavor("forever", ""); err == nil || !strings.Contains(err.Error(), "classic_era, retail") {
+	if _, err := inst.Flavor("ptr", ""); err == nil || !strings.Contains(err.Error(), "classic_era, forever, retail") {
 		t.Errorf("missing flavor error = %v", err)
+	}
+	if fv, err := inst.Flavor("forever", ""); err != nil || fv.Product != "wowf" || fv.Interface != 16001 {
+		t.Errorf("forever = %+v, %v", fv, err)
 	}
 	if fl, err := inst.Flavor("", "classic_era"); err != nil || fl.Name != "classic_era" {
 		t.Errorf("default name = %v, %v", fl, err)
@@ -113,7 +116,7 @@ func TestParseBuildInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rows) != 2 || rows[0].Product != "wow" || rows[0].Version != "11.2.5.64104" || rows[1].Product != "wow_classic_era" || rows[0].Branch != "us" {
+	if len(rows) != 3 || rows[0].Product != "wow" || rows[0].Version != "11.2.5.64104" || rows[1].Product != "wow_classic_era" || rows[0].Branch != "us" {
 		t.Errorf("rows = %+v", rows)
 	}
 }
@@ -669,5 +672,80 @@ func TestLuaIdentifierGuard(t *testing.T) {
 	}
 	if _, err := os.Stat(sv.Path); err == nil {
 		t.Fatal("file was written despite the rejected name")
+	}
+}
+
+func TestForeverRealmNamesAndFirstNames(t *testing.T) {
+	inst, err := Open(fixtureRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	fl, err := inst.Flavor("forever", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	acc, err := fl.ResolveAccount("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := acc.RealmNames()
+	// Spoken names the realm "CAMWOW US2 Realm 5 PvE" and EllesmereUI names
+	// it "Normal" and, in one stray key, "Illidan"; "Stranger - Normal" is
+	// skipped because no character is called Stranger. Each name is backed by
+	// one file, so the order is alphabetical.
+	want := []string{"CAMWOW US2 Realm 5 PvE", "Illidan", "Normal"}
+	if !reflect.DeepEqual(names["91"], want) {
+		t.Errorf("realm names = %v, want %v", names, want)
+	}
+	if acc.RealmLabel("91") != "CAMWOW US2 Realm 5 PvE" || acc.RealmLabel("nope") != "" {
+		t.Errorf("label = %q", acc.RealmLabel("91"))
+	}
+	if FirstName("Furda-Boiz") != "Furda" || FirstName("Cabooseh") != "Cabooseh" || FirstName("-x") != "-x" {
+		t.Error("FirstName")
+	}
+	cases := []struct{ realm, name, want string }{
+		{"", "Furda-Boiz", "Furda-Boiz"},
+		{"", "Furda", "Furda-Boiz"},
+		{"", "mr", "Mr-Lewinski"},
+		{"91", "Furda", "Furda-Boiz"},
+		{"Normal", "Furda", "Furda-Boiz"},
+		{"camwow us2 realm 5 pve", "Mr-Lewinski", "Mr-Lewinski"},
+	}
+	for _, c := range cases {
+		got, err := fl.ResolveCharacter("", c.realm, c.name)
+		if err != nil || got.Name != c.want {
+			t.Errorf("ResolveCharacter(%q, %q) = %v, %v; want %s", c.realm, c.name, got, err, c.want)
+		}
+	}
+	if _, err := fl.ResolveCharacter("", "Hardcore", "Furda"); err == nil {
+		t.Error("unknown realm alias resolved")
+	}
+	if _, err := fl.ResolveCharacter("", "", "Boiz"); err == nil {
+		t.Error("surname resolved as a first name")
+	}
+	// Retail realm folders are real names, so no labels are invented there.
+	rt, _ := inst.Flavor("retail", "")
+	racc, _ := rt.ResolveAccount("")
+	if len(racc.RealmNames()) != 0 {
+		t.Errorf("retail realm names = %v", racc.RealmNames())
+	}
+	// Cached result survives, and is refreshed when a file changes.
+	root := copyTree(t, fixtureRoot(t))
+	inst2, _ := Open(root)
+	fl2, _ := inst2.Flavor("forever", "")
+	acc2, _ := fl2.ResolveAccount("")
+	if acc2.RealmLabel("91") != "CAMWOW US2 Realm 5 PvE" {
+		t.Fatal("copy label")
+	}
+	extra := filepath.Join(acc2.SavedVariablesDir(), "Other.lua")
+	if err := os.WriteFile(extra, []byte("OtherDB = {\n\t[\"Furda - Normal\"] = 1,\n\t[\"Mr - Normal\"] = 2,\n}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got := acc2.RealmNames()["91"]; len(got) == 0 || got[0] != "Normal" {
+		t.Errorf("after new file, names = %v (Normal should now lead with two files)", got)
+	}
+	spoken, _ := FindAddon(fl, "Spoken")
+	if spoken.TOCFor("forever").Suffix != "Camelot" {
+		t.Error("forever did not pick the Camelot toc")
 	}
 }

@@ -121,6 +121,23 @@ picked: `_Mainline` for retail, `_Vanilla` for Classic Era, `_Camelot` for
 Forever (Camelot is its codename), `_Mists`/`_Classic`/`_Cata`/... for the
 progression client, then the plain `Name.toc`.
 
+## Realm IDs and two-part names (WoW Forever)
+
+Forever names its realm folders by numeric ID (for example `91`) and its
+character folders `First-Surname` (for example `Furda-Boiz`). To keep that
+usable:
+
+- `wow_characters` reports a `label` and `aliases` for such realms, taken
+  from the account's SavedVariables: addons key their data by
+  `"First - Realm name"` as the game reports it, so a realm ID shows up next
+  to names like `CAMWOW US2 Realm 5 PvE` or the ruleset `Normal`. Retail realm
+  folders already carry the real name and get no label.
+- The `realm` argument accepts the folder name or any of those labels.
+- The `character` argument accepts the full folder name or the first name
+  alone, when it is unique.
+- `realm` is optional whenever the character name is unique, which on a
+  single-realm client is always.
+
 ## Limitations
 
 - Blizzard's own addons (`Blizzard_*`) live inside the game data, so they are

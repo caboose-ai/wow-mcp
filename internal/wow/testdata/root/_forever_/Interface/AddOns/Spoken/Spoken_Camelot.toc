@@ -1,0 +1,4 @@
+## Interface: 16001
+## Title: Spoken (Camelot)
+## SavedVariables: SpokenDB
+core.lua

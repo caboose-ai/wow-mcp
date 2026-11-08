@@ -1,0 +1,4 @@
+## Interface: 11507
+## Title: Spoken
+## SavedVariables: SpokenDB
+core.lua

@@ -148,7 +148,7 @@ func TestReadTools(t *testing.T) {
 	cs := start(t, Options{Root: root})
 
 	inst := mustCall(t, cs, "wow_installs", obj{})
-	if str(inst, "root") != root || len(list(inst, "flavors")) != 2 {
+	if str(inst, "root") != root || len(list(inst, "flavors")) != 3 {
 		t.Fatalf("installs = %v", inst)
 	}
 	var retail obj
@@ -409,5 +409,40 @@ func TestNoInstall(t *testing.T) {
 	cs := start(t, Options{Root: t.TempDir()})
 	if _, errText := call(t, cs, "wow_installs", obj{}); !strings.Contains(errText, "WOW_ROOT") {
 		t.Errorf("no install error = %q", errText)
+	}
+}
+
+func TestForeverLabels(t *testing.T) {
+	cs := start(t, Options{Root: fixtureCopy(t), DefaultFlavor: "forever"})
+	chars := mustCall(t, cs, "wow_characters", obj{})
+	if str(chars, "flavor") != "forever" {
+		t.Fatalf("flavor = %v", chars)
+	}
+	realms := list(list(chars, "accounts")[0].(obj), "realms")
+	if len(realms) != 1 {
+		t.Fatalf("realms = %v", realms)
+	}
+	r := realms[0].(obj)
+	if str(r, "name") != "91" || str(r, "label") != "CAMWOW US2 Realm 5 PvE" || len(list(r, "aliases")) != 2 {
+		t.Errorf("realm = %v", r)
+	}
+	c := list(r, "characters")[0].(obj)
+	if str(c, "name") != "Furda-Boiz" || str(c, "first_name") != "Furda" || str(c, "realm_label") != "CAMWOW US2 Realm 5 PvE" {
+		t.Errorf("character = %v", c)
+	}
+	addons := mustCall(t, cs, "wow_addons", obj{"character": "Furda", "realm": "Normal"})
+	if str(addons, "character") != "TESTACC/91/Furda-Boiz" || str(addons, "realm_label") != "CAMWOW US2 Realm 5 PvE" || num(addons, "interface") != 16001 {
+		t.Errorf("addons = %v", addons)
+	}
+	sp := findAddon(t, addons, "Spoken")
+	if sp["enabled"] != true || sp["toc"] != "Spoken_Camelot.toc" || sp["out_of_date"] != false {
+		t.Errorf("Spoken = %v", sp)
+	}
+	sv := mustCall(t, cs, "wow_saved_variables", obj{"addon": "Spoken", "character": "Furda"})
+	if str(sv, "scope") != "TESTACC/91 (CAMWOW US2 Realm 5 PvE)/Furda-Boiz" || sv["data"].(obj)["SpokenCharDB"].(obj)["seen"] != 3.0 {
+		t.Errorf("sv = %v", sv)
+	}
+	if _, errText := call(t, cs, "wow_addons", obj{"character": "Furda", "realm": "Hardcore"}); !strings.Contains(errText, "no character") {
+		t.Errorf("bad alias error = %q", errText)
 	}
 }

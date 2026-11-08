@@ -124,7 +124,7 @@ func TestAddonsAndTOCs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if a.Name != "TestAddon" || len(a.TOCs) != 3 || a.TOCs[0].Suffix != "" {
+	if a.Name != "TestAddon" || len(a.TOCs) != 4 || a.TOCs[0].Suffix != "" {
 		t.Fatalf("addon = %+v", a)
 	}
 	plain := a.TOCs[0]
@@ -144,7 +144,7 @@ func TestAddonsAndTOCs(t *testing.T) {
 	if plain.DefaultState != "enabled" || plain.LoadOnDemand {
 		t.Errorf("defaults = %+v", plain)
 	}
-	for flavor, want := range map[string]string{"retail": "Mainline", "classic_era": "Vanilla", "forever": "Vanilla", "classic": "", "unknown": ""} {
+	for flavor, want := range map[string]string{"retail": "Mainline", "classic_era": "Vanilla", "forever": "Camelot", "classic": "", "unknown": ""} {
 		if got := a.TOCFor(flavor); got.Suffix != want {
 			t.Errorf("TOCFor(%s) = %q, want %q", flavor, got.Suffix, want)
 		}

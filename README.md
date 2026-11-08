@@ -117,9 +117,9 @@ supplies the game version per product; the TOC interface number is derived as
 does not match (`out_of_date`).
 
 For an addon with several `.toc` files the one the client would load is
-picked: `_Mainline` for retail, `_Vanilla` for Classic Era (and Forever, which
-is a Classic-era branch), `_Mists`/`_Classic`/`_Cata`/... for the progression
-client, then the plain `Name.toc`.
+picked: `_Mainline` for retail, `_Vanilla` for Classic Era, `_Camelot` for
+Forever (Camelot is its codename), `_Mists`/`_Classic`/`_Cata`/... for the
+progression client, then the plain `Name.toc`.
 
 ## Limitations
 

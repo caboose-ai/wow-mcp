@@ -191,7 +191,7 @@ func TestReadTools(t *testing.T) {
 	}
 
 	detail := mustCall(t, cs, "wow_addon", obj{"name": "testaddon"})
-	if str(detail, "name") != "TestAddon" || len(list(detail, "tocs")) != 3 || num(detail, "file_count") != 6 || len(list(detail, "saved_variable_files")) != 2 || len(list(detail, "enabled_on")) != 3 {
+	if str(detail, "name") != "TestAddon" || len(list(detail, "tocs")) != 4 || num(detail, "file_count") != 7 || len(list(detail, "saved_variable_files")) != 2 || len(list(detail, "enabled_on")) != 3 {
 		t.Errorf("detail = %v", detail)
 	}
 	if _, errText := call(t, cs, "wow_addon", obj{"name": "Nope"}); errText == "" {
@@ -256,7 +256,7 @@ func TestReadTools(t *testing.T) {
 	}
 
 	af := mustCall(t, cs, "wow_addon_file", obj{"addon": "TestAddon"})
-	if af["is_dir"] != true || len(list(af, "entries")) != 6 {
+	if af["is_dir"] != true || len(list(af, "entries")) != 7 {
 		t.Errorf("dir listing = %v", af)
 	}
 	af = mustCall(t, cs, "wow_addon_file", obj{"addon": "TestAddon", "path": "core.lua"})

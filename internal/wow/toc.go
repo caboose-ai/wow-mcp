@@ -170,8 +170,8 @@ func LoadAddon(dir string) (*Addon, error) {
 
 // flavorSuffixes lists, per flavor short name, the toc suffixes the client
 // loads, most specific first. "Classic" is Blizzard's generic suffix for the
-// current progression client; Forever is a Classic-era branch so it falls
-// back to the Vanilla toc.
+// current progression client. WoW Forever (codename Camelot) uses "_Camelot",
+// seen on a real install in 2026-11; it is not known to read the Vanilla toc.
 var flavorSuffixes = map[string][]string{
 	"retail":          {"Mainline"},
 	"ptr":             {"Mainline"},
@@ -182,7 +182,7 @@ var flavorSuffixes = map[string][]string{
 	"classic_beta":    {"Mists", "Classic", "Cata", "Wrath", "WOTLKC", "TBC", "BCC"},
 	"classic_era":     {"Vanilla", "Classic"},
 	"classic_era_ptr": {"Vanilla", "Classic"},
-	"forever":         {"Forever", "Camelot", "Vanilla", "Classic"},
+	"forever":         {"Camelot"},
 }
 
 // TOCFor picks the .toc the client of flavorName would load: the matching

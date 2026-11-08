@@ -1,0 +1,4 @@
+## Interface: 16001
+## Title: Test Addon (Camelot)
+## Version: 1.2.3
+core.lua
